@@ -1,0 +1,7 @@
+
+H
+java:S1452I"&Remove usage of generic wildcard type.(Ùº»Üøÿÿÿÿ8½œò€ø/
+C
+java:S1452V"&Remove usage of generic wildcard type.(ç¨ü8úæó€ø/
+i
+java:S1858Y"G"getIdProducto" returns a string, there's no need to call "toString()".(ğáŸÿÿÿÿÿ8Ğü‰‚ø/

@@ -1,0 +1,42 @@
+# Configuraciones del servidor
+server:
+  port: 8090
+# Configuraciones de spring cloud
+spring:
+  cloud:
+    gateway:
+      routes:
+      - id: servicio-productos
+        uri: lb://servicio-productos
+        predicates:
+          - Path=/api/productos/**
+        filters:
+          - CircuitBreaker=productos
+          - StripPrefix=2
+          - ExampleCookie=Hola mi mensaje personalizado, usuario, DigitalHouse
+      - id: servicio-items
+        uri: lb://servicio-items
+        predicates:
+          - Path=/api/items/**
+        filters:
+          - StripPrefix=2
+          - AddRequestHeader=token-request, 1234567890
+          - AddResponseHeader=token-response, 0987654321
+          - AddRequestParameter=nombre, Jorge
+      - id: servicio-usuarios
+        uri: lb://servicio-usuarios
+        predicates:
+          - Path=/api/usuarios/**
+        filters:
+          - StripPrefix=2
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: 'http://localhost:4200'
+            allowedHeaders:
+              - Content-Type
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE

@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: config-server
+  cloud:
+    config:
+      server:
+        git:
+          uri: https://github.com/kenyodarz/config-ms
+          default-label: master
+
+server:
+  port: 8888
+
