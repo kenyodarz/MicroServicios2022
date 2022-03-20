@@ -1,4 +1,4 @@
 server:
-  port: 8005
+  port: ${PORT:0}
 configuracion:
   texto: Configurando Entorno de defecto

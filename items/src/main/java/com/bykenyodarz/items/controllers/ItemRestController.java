@@ -3,12 +3,12 @@ package com.bykenyodarz.items.controllers;
 import com.bykenyodarz.items.models.Item;
 import com.bykenyodarz.items.models.Producto;
 import com.bykenyodarz.items.services.ItemService;
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.cloud.client.circuitbreaker.CircuitBreakerFactory;
 import org.springframework.cloud.context.config.annotation.RefreshScope;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.net.URI;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +39,8 @@ public class ItemRestController {
 
     private final Environment env;
 
+    private final CircuitBreakerFactory cbFactory;
+
     @Value("${configuracion.texto}")
     private String text;
 
@@ -47,12 +50,16 @@ public class ItemRestController {
     }
 
     @GetMapping("/{id}/{cantidad}")
-    @CircuitBreaker(name = "PRODUCTOS", fallbackMethod = "metodoAlternativo")
+//    @CircuitBreaker(name = "PRODUCTOS", fallbackMethod = "metodoAlternativo")
     public Item getItem(@PathVariable String id, @PathVariable Integer cantidad) {
-        return itemService.findById(id, cantidad);
+        return cbFactory.create("items")
+                .run(() -> itemService.findById(id, cantidad)
+                        , throwable ->
+                                metodoAlternativo(id, cantidad, throwable)
+                );
     }
 
-    public Item metodoAlternativo(String id, Integer cantidad, Exception ex) {
+    public Item metodoAlternativo(String id, Integer cantidad, Throwable ex) {
         var item = new Item();
         var product = new Producto();
 
@@ -61,6 +68,7 @@ public class ItemRestController {
         product.setIdProducto(id);
         product.setNombre("Producto Prueba");
         product.setPrecio(500.00);
+        product.setCreatedAt(LocalDateTime.now());
 
         item.setProducto(product);
 
@@ -70,7 +78,7 @@ public class ItemRestController {
     }
 
     @GetMapping("/obtener-config")
-    public ResponseEntity<?> getConfig(@Value("${server.port}") String puerto) {
+    public ResponseEntity<Map<String, String>> getConfig(@Value("${server.port}") String puerto) {
         LOGGER.info("Configuración -> {}", text);
         Map<String, String> jsonResponse = new HashMap<>();
         jsonResponse.put("text", text);
@@ -86,7 +94,7 @@ public class ItemRestController {
     public ResponseEntity<?> crear(@RequestBody Producto producto) {
         var productoResponse = itemService.save(producto);
         return ResponseEntity.created(URI
-                        .create("/".concat(productoResponse.getIdProducto().toString())))
+                        .create("/".concat(productoResponse.getIdProducto())))
                 .body(producto);
     }
 
