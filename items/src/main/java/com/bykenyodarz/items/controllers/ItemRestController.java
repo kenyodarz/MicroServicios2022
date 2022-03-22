@@ -3,6 +3,8 @@ package com.bykenyodarz.items.controllers;
 import com.bykenyodarz.items.models.Item;
 import com.bykenyodarz.items.models.Producto;
 import com.bykenyodarz.items.services.ItemService;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import io.github.resilience4j.timelimiter.annotation.TimeLimiter;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +28,7 @@ import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 @RequiredArgsConstructor
 @RefreshScope
@@ -50,13 +53,25 @@ public class ItemRestController {
     }
 
     @GetMapping("/{id}/{cantidad}")
-//    @CircuitBreaker(name = "PRODUCTOS", fallbackMethod = "metodoAlternativo")
     public Item getItem(@PathVariable String id, @PathVariable Integer cantidad) {
         return cbFactory.create("items")
                 .run(() -> itemService.findById(id, cantidad)
                         , throwable ->
                                 metodoAlternativo(id, cantidad, throwable)
                 );
+    }
+
+    @GetMapping("/v2/{id}/{cantidad}")
+    @CircuitBreaker(name = "items", fallbackMethod = "metodoAlternativo")
+    public Item getItem2(@PathVariable String id, @PathVariable Integer cantidad) {
+        return itemService.findById(id, cantidad);
+    }
+
+
+    @GetMapping("/v3/{id}/{cantidad}")
+    @TimeLimiter(name = "items", fallbackMethod = "metodoAlternativo2")
+    public CompletableFuture<Item> getItem3(@PathVariable String id, @PathVariable Integer cantidad) {
+        return CompletableFuture.supplyAsync(() -> itemService.findById(id, cantidad));
     }
 
     public Item metodoAlternativo(String id, Integer cantidad, Throwable ex) {
@@ -75,6 +90,24 @@ public class ItemRestController {
         LOGGER.info("Response 200, fallback method for error: {}", ex.getMessage());
 
         return item;
+    }
+
+    public CompletableFuture<Item> metodoAlternativo2(String id, Integer cantidad, Throwable ex) {
+        var item = new Item();
+        var product = new Producto();
+
+        item.setCantidad(cantidad);
+
+        product.setIdProducto(id);
+        product.setNombre("Producto Prueba");
+        product.setPrecio(500.00);
+        product.setCreatedAt(LocalDateTime.now());
+
+        item.setProducto(product);
+
+        LOGGER.info("Response 200, fallback method for error: {}", ex.getMessage());
+
+        return CompletableFuture.supplyAsync(() -> item);
     }
 
     @GetMapping("/obtener-config")
