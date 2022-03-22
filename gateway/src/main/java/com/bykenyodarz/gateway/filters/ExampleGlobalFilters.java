@@ -36,9 +36,8 @@ public class ExampleGlobalFilters implements GlobalFilter, Ordered {
             var finalTime = LocalTime.now();
             LOGGER.info("ejecutando filtro post");
 
-            Optional.ofNullable(exchange.getRequest().getHeaders().getFirst(TOKEN_GENERATED)).ifPresent(valor -> {
-                exchange.getResponse().getHeaders().add(TOKEN_GENERATED, valor);
-            });
+            Optional.ofNullable(exchange.getRequest().getHeaders().getFirst(TOKEN_GENERATED)).ifPresent(
+                    valor -> exchange.getResponse().getHeaders().add(TOKEN_GENERATED, valor));
 
             exchange.getResponse().getCookies().add("color", ResponseCookie.from("color", "rojo").build());
             LOGGER.info("Tiempo Total: -> {}", Duration.between(initialTime, finalTime).toMillis());
@@ -48,6 +47,6 @@ public class ExampleGlobalFilters implements GlobalFilter, Ordered {
 
     @Override
     public int getOrder() {
-        return 1;
+        return 10;
     }
 }
