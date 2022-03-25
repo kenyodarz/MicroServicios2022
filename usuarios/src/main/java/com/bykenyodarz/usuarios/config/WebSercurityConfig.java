@@ -1,5 +1,8 @@
 package com.bykenyodarz.usuarios.config;
 
+import com.bykenyodarz.usuarios.security.keys.AuthEntryPointJwt;
+import com.bykenyodarz.usuarios.security.keys.AuthTokenFilter;
+import com.bykenyodarz.usuarios.services.UserDetailsServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -56,10 +59,8 @@ public class WebSercurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .antMatchers("/auth/**").permitAll()
                 .antMatchers("/test/**").permitAll()
-                .antMatchers("/swagger-ui/**").permitAll()
                 .antMatchers("/configuration/**").permitAll()
-                .antMatchers("/swagger-resources/**").permitAll()
-                .antMatchers("/v2/api-docs").permitAll()
+                .antMatchers("/actuator/info").permitAll()
                 .anyRequest().authenticated();
 
         http.addFilterBefore(authenticationTokenFilter(), UsernamePasswordAuthenticationFilter.class);

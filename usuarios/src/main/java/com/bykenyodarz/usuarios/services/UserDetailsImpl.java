@@ -1,5 +1,6 @@
 package com.bykenyodarz.usuarios.services;
 
+import com.bykenyodarz.usuarios.models.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
