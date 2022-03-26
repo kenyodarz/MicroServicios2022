@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
-import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -13,7 +12,6 @@ import reactor.core.publisher.Mono;
 import java.time.Duration;
 import java.time.LocalTime;
 import java.util.Arrays;
-import java.util.Optional;
 
 @Component
 public class ExampleGlobalFilters implements GlobalFilter, Ordered {
@@ -36,10 +34,10 @@ public class ExampleGlobalFilters implements GlobalFilter, Ordered {
             var finalTime = LocalTime.now();
             LOGGER.info("ejecutando filtro post");
 
-            Optional.ofNullable(exchange.getRequest().getHeaders().getFirst(TOKEN_GENERATED)).ifPresent(
-                    valor -> exchange.getResponse().getHeaders().add(TOKEN_GENERATED, valor));
+//            Optional.ofNullable(exchange.getRequest().getHeaders().getFirst(TOKEN_GENERATED)).ifPresent(
+//                    valor -> exchange.getResponse().getHeaders().add(TOKEN_GENERATED, valor));
 
-            exchange.getResponse().getCookies().add("color", ResponseCookie.from("color", "rojo").build());
+//            exchange.getResponse().getCookies().add("color", ResponseCookie.from("color", "rojo").build());
             LOGGER.info("Tiempo Total: -> {}", Duration.between(initialTime, finalTime).toMillis());
             LOGGER.info("Global Post Filter executed");
         }));

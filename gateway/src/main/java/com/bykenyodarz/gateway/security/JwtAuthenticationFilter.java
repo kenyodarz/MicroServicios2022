@@ -1,7 +1,6 @@
 package com.bykenyodarz.gateway.security;
 
 import org.springframework.http.HttpHeaders;
-import org.springframework.security.authentication.ReactiveAuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -13,9 +12,9 @@ import reactor.core.publisher.Mono;
 @Component
 public class JwtAuthenticationFilter implements WebFilter {
 
-    private final ReactiveAuthenticationManager authenticationManager;
+    private final AuthenticationManagerJwt authenticationManager;
 
-    public JwtAuthenticationFilter(ReactiveAuthenticationManager authenticationManager) {
+    public JwtAuthenticationFilter(AuthenticationManagerJwt authenticationManager) {
         this.authenticationManager = authenticationManager;
     }
 
@@ -25,6 +24,8 @@ public class JwtAuthenticationFilter implements WebFilter {
                 .filter(authHeader -> authHeader.startsWith("Bearer "))
                 .switchIfEmpty(chain.filter(exchange).then(Mono.empty()))
                 .map(token -> token.replace("Bearer ", ""))
+                .filter(authenticationManager::validateJwtToken)
+                .switchIfEmpty(chain.filter(exchange).then(Mono.empty()))
                 .flatMap(token -> authenticationManager.authenticate(
                         new UsernamePasswordAuthenticationToken(null, token)))
                 .flatMap(authentication -> chain.filter(exchange)
